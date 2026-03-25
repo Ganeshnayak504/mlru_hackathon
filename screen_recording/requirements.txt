@@ -1,0 +1,38 @@
+# Digital Arrest Shield — Requirements
+# =====================================
+# Install command:
+# Ubuntu/Mac : pip3 install -r requirements.txt --user
+# Windows    : pip install -r requirements.txt
+
+# ── Core ML ──────────────────────────
+scikit-learn==1.6.1
+numpy
+pandas
+
+# ── Speech to Text ───────────────────
+openai-whisper
+
+# ── Audio Capture ────────────────────
+sounddevice
+pyaudio
+
+# ── Backend API ──────────────────────
+fastapi
+uvicorn
+httpx
+python-multipart
+pydantic
+
+# ── Language Detection & Translation ─
+deep-translator
+langdetect
+
+# ── WhatsApp Bot ─────────────────────
+twilio
+
+# ── HTTP Requests ────────────────────
+requests
+
+# ── Alert UI (Laptop Detection) ──────
+# tkinter comes pre-installed with Python
+# No need to pip install it

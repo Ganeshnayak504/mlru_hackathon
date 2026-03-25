@@ -1,0 +1,1407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SHIELD AI — Digital Arrest Shield</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cyan: #00fff5;
+    --red: #ff003c;
+    --yellow: #ffe600;
+    --navy: #010a13;
+    --mid: #061220;
+    --card: #0a1f33;
+    --glow-cyan: 0 0 10px #00fff5, 0 0 30px #00fff577, 0 0 60px #00fff522;
+    --glow-red: 0 0 10px #ff003c, 0 0 30px #ff003c77;
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--navy);
+    color: #c8e0f0;
+    font-family: 'Rajdhani', sans-serif;
+    overflow-x: hidden;
+    cursor: crosshair;
+  }
+
+  /* SCANLINES OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,255,245,0.015) 2px,
+      rgba(0,255,245,0.015) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* NOISE GRAIN */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9998;
+    opacity: 0.4;
+  }
+
+  /* ───────────── NAV ───────────── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 3rem;
+    background: rgba(1,10,19,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(0,255,245,0.15);
+  }
+
+  .nav-logo {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 900;
+    font-size: 1.1rem;
+    color: var(--cyan);
+    text-shadow: var(--glow-cyan);
+    letter-spacing: 4px;
+  }
+
+  .nav-logo span { color: var(--red); }
+
+  .nav-links { display: flex; gap: 2rem; list-style: none; }
+  .nav-links a {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    color: rgba(200,224,240,0.6);
+    text-decoration: none;
+    letter-spacing: 2px;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--cyan); text-shadow: var(--glow-cyan); }
+
+  .nav-badge {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--red);
+    border: 1px solid var(--red);
+    padding: 0.3rem 0.8rem;
+    letter-spacing: 2px;
+    animation: blink 1.5s step-end infinite;
+  }
+
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  /* ───────────── HERO ───────────── */
+  #hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    padding: 8rem 2rem 4rem;
+  }
+
+  /* HEX GRID BG */
+  .hex-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V18L28 2l28 16v32L28 66zm0-4l24-14V20L28 6 4 20v28l24 14z' fill='none' stroke='rgba(0,255,245,0.06)' stroke-width='1'/%3E%3C/svg%3E");
+    animation: hexDrift 30s linear infinite;
+    opacity: 0.8;
+  }
+
+  @keyframes hexDrift { from{background-position:0 0} to{background-position:56px 100px} }
+
+  /* RADIAL GLOW CENTER */
+  .hero-glow {
+    position: absolute;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(0,255,245,0.07) 0%, transparent 70%);
+    top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    animation: pulse 4s ease-in-out infinite;
+  }
+
+  @keyframes pulse { 0%,100%{transform:translate(-50%,-50%) scale(1)} 50%{transform:translate(-50%,-50%) scale(1.15)} }
+
+  .hero-tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--cyan);
+    letter-spacing: 5px;
+    border: 1px solid rgba(0,255,245,0.3);
+    padding: 0.4rem 1.2rem;
+    margin-bottom: 2rem;
+    position: relative;
+    z-index: 1;
+    animation: fadeUp 0.8s ease both;
+  }
+
+  .hero-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(3rem, 8vw, 7rem);
+    font-weight: 900;
+    text-align: center;
+    line-height: 1;
+    letter-spacing: -1px;
+    position: relative;
+    z-index: 1;
+    animation: fadeUp 0.9s ease both 0.1s;
+  }
+
+  .hero-title .line1 { color: #fff; display: block; }
+  .hero-title .line2 {
+    color: var(--cyan);
+    text-shadow: var(--glow-cyan);
+    display: block;
+    font-size: clamp(2rem, 5vw, 4.5rem);
+  }
+
+  /* GLITCH EFFECT */
+  .glitch {
+    position: relative;
+  }
+  .glitch::before, .glitch::after {
+    content: attr(data-text);
+    position: absolute;
+    inset: 0;
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+  }
+  .glitch::before {
+    color: var(--red);
+    clip-path: polygon(0 0, 100% 0, 100% 35%, 0 35%);
+    animation: glitch1 3s infinite;
+    left: 2px;
+  }
+  .glitch::after {
+    color: var(--cyan);
+    clip-path: polygon(0 65%, 100% 65%, 100% 100%, 0 100%);
+    animation: glitch2 3s infinite;
+    left: -2px;
+  }
+
+  @keyframes glitch1 {
+    0%,90%,100%{transform:translate(0)} 92%{transform:translate(-3px,1px)} 94%{transform:translate(3px,-1px)} 96%{transform:translate(-1px,2px)}
+  }
+  @keyframes glitch2 {
+    0%,90%,100%{transform:translate(0)} 92%{transform:translate(3px,-1px)} 94%{transform:translate(-3px,1px)} 96%{transform:translate(2px,-2px)}
+  }
+
+  .hero-sub {
+    font-size: 1.1rem;
+    font-weight: 300;
+    color: rgba(200,224,240,0.6);
+    text-align: center;
+    max-width: 580px;
+    line-height: 1.7;
+    margin-top: 1.5rem;
+    position: relative;
+    z-index: 1;
+    letter-spacing: 1px;
+    animation: fadeUp 1s ease both 0.2s;
+  }
+
+  .hero-ctas {
+    display: flex;
+    gap: 1.2rem;
+    margin-top: 3rem;
+    position: relative;
+    z-index: 1;
+    animation: fadeUp 1s ease both 0.3s;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .btn-primary {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--navy);
+    background: var(--cyan);
+    padding: 1rem 2.5rem;
+    border: none;
+    cursor: pointer;
+    clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+    transition: all 0.2s;
+    text-decoration: none;
+  }
+  .btn-primary:hover {
+    background: #fff;
+    transform: translateY(-2px);
+    box-shadow: var(--glow-cyan);
+  }
+
+  .btn-secondary {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--red);
+    background: transparent;
+    padding: 1rem 2.5rem;
+    border: 1px solid var(--red);
+    cursor: pointer;
+    clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+    transition: all 0.2s;
+    text-decoration: none;
+  }
+  .btn-secondary:hover {
+    background: rgba(255,0,60,0.1);
+    box-shadow: var(--glow-red);
+    transform: translateY(-2px);
+  }
+
+  /* SCROLL INDICATOR */
+  .scroll-hint {
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.6rem;
+    color: rgba(0,255,245,0.4);
+    letter-spacing: 3px;
+    animation: fadeUp 1s ease both 0.6s;
+  }
+  .scroll-line {
+    width: 1px;
+    height: 40px;
+    background: linear-gradient(to bottom, rgba(0,255,245,0.5), transparent);
+    animation: scrollLine 2s ease-in-out infinite;
+  }
+  @keyframes scrollLine { 0%,100%{opacity:0.3;transform:scaleY(0.5)} 50%{opacity:1;transform:scaleY(1)} }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ───────────── TICKER ───────────── */
+  .ticker {
+    background: var(--red);
+    padding: 0.7rem 0;
+    overflow: hidden;
+    white-space: nowrap;
+    border-top: 1px solid rgba(255,0,60,0.5);
+    border-bottom: 1px solid rgba(255,0,60,0.5);
+  }
+  .ticker-track {
+    display: inline-flex;
+    animation: ticker 25s linear infinite;
+  }
+  .ticker-item {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 3px;
+    color: #fff;
+    padding: 0 3rem;
+  }
+  .ticker-item::before { content: '⚠ '; }
+  @keyframes ticker { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+
+  /* ───────────── STATS ───────────── */
+  #stats {
+    padding: 6rem 3rem;
+    position: relative;
+  }
+
+  .section-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--cyan);
+    letter-spacing: 5px;
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+
+  .section-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(1.8rem, 3vw, 2.8rem);
+    font-weight: 700;
+    text-align: center;
+    color: #fff;
+    margin-bottom: 1rem;
+  }
+
+  .section-title .accent { color: var(--cyan); }
+
+  .section-desc {
+    text-align: center;
+    color: rgba(200,224,240,0.5);
+    font-size: 1rem;
+    max-width: 500px;
+    margin: 0 auto 4rem;
+    letter-spacing: 0.5px;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5px;
+    max-width: 1100px;
+    margin: 0 auto;
+    background: rgba(0,255,245,0.08);
+  }
+
+  .stat-card {
+    background: var(--mid);
+    padding: 2.5rem 2rem;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.3s;
+  }
+  .stat-card:hover { background: var(--card); }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 100%;
+    background: var(--cyan);
+    transform: scaleY(0);
+    transition: transform 0.3s;
+    transform-origin: bottom;
+  }
+  .stat-card:hover::before { transform: scaleY(1); }
+
+  .stat-num {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 2.8rem;
+    font-weight: 900;
+    color: var(--cyan);
+    text-shadow: var(--glow-cyan);
+    line-height: 1;
+    margin-bottom: 0.5rem;
+  }
+  .stat-num.danger { color: var(--red); text-shadow: var(--glow-red); }
+
+  .stat-label {
+    font-size: 0.9rem;
+    color: rgba(200,224,240,0.7);
+    letter-spacing: 1px;
+    line-height: 1.5;
+  }
+
+  .stat-corner {
+    position: absolute;
+    bottom: 0.8rem; right: 0.8rem;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.55rem;
+    color: rgba(0,255,245,0.2);
+    letter-spacing: 2px;
+  }
+
+  /* ───────────── HOW IT WORKS ───────────── */
+  #how {
+    padding: 6rem 3rem;
+    background: var(--mid);
+    position: relative;
+    overflow: hidden;
+  }
+
+  #how::before {
+    content: 'HOW IT WORKS';
+    position: absolute;
+    right: -2rem;
+    top: 50%;
+    transform: translateY(-50%) rotate(90deg);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 6rem;
+    font-weight: 900;
+    color: rgba(0,255,245,0.03);
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  .flow {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0;
+    max-width: 1100px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .flow::before {
+    content: '';
+    position: absolute;
+    top: 3.5rem;
+    left: 10%; right: 10%;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--cyan), transparent);
+    opacity: 0.3;
+  }
+
+  .flow-step {
+    padding: 2rem 1.5rem;
+    text-align: center;
+    position: relative;
+  }
+
+  .step-num {
+    width: 3.5rem; height: 3.5rem;
+    border: 1px solid var(--cyan);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--cyan);
+    margin: 0 auto 1.2rem;
+    background: var(--navy);
+    position: relative;
+    z-index: 1;
+    transition: all 0.3s;
+  }
+
+  .flow-step:hover .step-num {
+    background: var(--cyan);
+    color: var(--navy);
+    box-shadow: var(--glow-cyan);
+  }
+
+  .step-icon {
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+    display: block;
+  }
+
+  .step-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 1px;
+    margin-bottom: 0.6rem;
+  }
+
+  .step-desc {
+    font-size: 0.85rem;
+    color: rgba(200,224,240,0.5);
+    line-height: 1.6;
+  }
+
+  /* ───────────── FEATURES ───────────── */
+  #features {
+    padding: 6rem 3rem;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5px;
+    max-width: 1100px;
+    margin: 0 auto;
+    background: rgba(0,255,245,0.05);
+  }
+
+  .feat-card {
+    background: var(--navy);
+    padding: 2.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.3s;
+  }
+  .feat-card:hover { background: var(--card); }
+
+  .feat-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 100%; height: 2px;
+    background: linear-gradient(to right, var(--cyan), transparent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s;
+  }
+  .feat-card:hover::after { transform: scaleX(1); }
+
+  .feat-icon-wrap {
+    width: 3rem; height: 3rem;
+    border: 1px solid rgba(0,255,245,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem;
+    margin-bottom: 1.5rem;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+  .feat-card:hover .feat-icon-wrap {
+    border-color: var(--cyan);
+    box-shadow: var(--glow-cyan);
+  }
+
+  .feat-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 1px;
+    margin-bottom: 0.8rem;
+  }
+
+  .feat-desc {
+    font-size: 0.9rem;
+    color: rgba(200,224,240,0.55);
+    line-height: 1.7;
+  }
+
+  .feat-tag {
+    display: inline-block;
+    margin-top: 1.2rem;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--cyan);
+    border: 1px solid rgba(0,255,245,0.25);
+    padding: 0.2rem 0.6rem;
+    letter-spacing: 2px;
+  }
+
+  /* ───────────── PLATFORM SPLIT ───────────── */
+  #platforms {
+    padding: 6rem 3rem;
+    background: var(--mid);
+  }
+
+  .platform-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5px;
+    max-width: 1100px;
+    margin: 0 auto;
+    background: rgba(0,255,245,0.05);
+  }
+
+  .platform-card {
+    background: var(--navy);
+    padding: 3.5rem 3rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .platform-card.whatsapp { background: #040d14; }
+
+  .platform-bg-text {
+    position: absolute;
+    bottom: -1rem; right: -1rem;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 7rem;
+    font-weight: 900;
+    color: rgba(0,255,245,0.03);
+    line-height: 1;
+    pointer-events: none;
+  }
+
+  .platform-card.whatsapp .platform-bg-text { color: rgba(37,211,102,0.04); }
+
+  .platform-icon {
+    font-size: 3rem;
+    margin-bottom: 1.5rem;
+    display: block;
+  }
+
+  .platform-name {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.4rem;
+    font-weight: 900;
+    color: #fff;
+    margin-bottom: 0.5rem;
+    letter-spacing: 2px;
+  }
+
+  .platform-sub {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--cyan);
+    letter-spacing: 3px;
+    margin-bottom: 2rem;
+  }
+
+  .platform-card.whatsapp .platform-sub { color: #25D366; }
+
+  .platform-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .platform-list li {
+    font-size: 0.9rem;
+    color: rgba(200,224,240,0.65);
+    padding-left: 1.2rem;
+    position: relative;
+    line-height: 1.5;
+  }
+
+  .platform-list li::before {
+    content: '›';
+    position: absolute;
+    left: 0;
+    color: var(--cyan);
+    font-weight: 700;
+  }
+
+  .platform-card.whatsapp .platform-list li::before { color: #25D366; }
+
+  .platform-badge {
+    display: inline-block;
+    margin-top: 2rem;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 2px;
+    padding: 0.5rem 1rem;
+    border: 1px solid rgba(0,255,245,0.3);
+    color: var(--cyan);
+  }
+
+  .platform-card.whatsapp .platform-badge {
+    border-color: rgba(37,211,102,0.3);
+    color: #25D366;
+  }
+
+  /* ───────────── TECH STACK ───────────── */
+  #tech {
+    padding: 5rem 3rem;
+  }
+
+  .tech-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    max-width: 900px;
+    margin: 0 auto;
+    justify-content: center;
+  }
+
+  .tech-pill {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 2px;
+    color: rgba(200,224,240,0.7);
+    border: 1px solid rgba(0,255,245,0.15);
+    padding: 0.5rem 1.2rem;
+    transition: all 0.2s;
+    cursor: default;
+  }
+  .tech-pill:hover {
+    color: var(--cyan);
+    border-color: var(--cyan);
+    box-shadow: var(--glow-cyan);
+    transform: translateY(-2px);
+  }
+
+  /* ───────────── ALERT DEMO ───────────── */
+  #alert-demo {
+    padding: 6rem 3rem;
+    background: var(--mid);
+    text-align: center;
+  }
+
+  .alert-box {
+    max-width: 600px;
+    margin: 3rem auto 0;
+    background: var(--navy);
+    border: 1px solid var(--red);
+    padding: 2.5rem;
+    position: relative;
+    box-shadow: 0 0 30px rgba(255,0,60,0.15), inset 0 0 30px rgba(255,0,60,0.03);
+    animation: alertPulse 3s ease-in-out infinite;
+  }
+
+  @keyframes alertPulse {
+    0%,100%{box-shadow:0 0 20px rgba(255,0,60,0.15),inset 0 0 20px rgba(255,0,60,0.03)}
+    50%{box-shadow:0 0 50px rgba(255,0,60,0.35),inset 0 0 40px rgba(255,0,60,0.06)}
+  }
+
+  .alert-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .alert-dot {
+    width: 12px; height: 12px;
+    background: var(--red);
+    border-radius: 50%;
+    box-shadow: var(--glow-red);
+    animation: blink 0.8s step-end infinite;
+  }
+
+  .alert-title-text {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--red);
+    letter-spacing: 3px;
+  }
+
+  .alert-code {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75rem;
+    color: rgba(200,224,240,0.4);
+    margin-left: auto;
+  }
+
+  .risk-bar-wrap {
+    margin-bottom: 1.5rem;
+  }
+  .risk-bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    color: rgba(200,224,240,0.4);
+    margin-bottom: 0.4rem;
+    letter-spacing: 2px;
+  }
+  .risk-bar {
+    height: 6px;
+    background: rgba(255,255,255,0.05);
+    position: relative;
+  }
+  .risk-fill {
+    height: 100%;
+    background: linear-gradient(to right, var(--yellow), var(--red));
+    width: 94%;
+    animation: fillBar 2s ease both 0.5s;
+    box-shadow: 0 0 10px rgba(255,0,60,0.5);
+  }
+  @keyframes fillBar { from{width:0} }
+
+  .alert-flags {
+    text-align: left;
+    margin-bottom: 1.5rem;
+  }
+  .alert-flag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.72rem;
+    color: rgba(255,230,0,0.85);
+    padding: 0.3rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    letter-spacing: 1px;
+  }
+  .alert-flag::before { content: '⚡ '; }
+
+  .alert-actions {
+    display: flex;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+  }
+
+  .act-btn {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 2px;
+    padding: 0.6rem 1rem;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .act-btn.primary { background: var(--red); color: #fff; }
+  .act-btn.secondary { background: transparent; border: 1px solid rgba(200,224,240,0.2); color: rgba(200,224,240,0.6); }
+  .act-btn:hover { transform: translateY(-1px); opacity: 0.9; }
+
+  /* ───────────── FOOTER ───────────── */
+  footer {
+    padding: 3rem;
+    border-top: 1px solid rgba(0,255,245,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: gap;
+    gap: 1rem;
+  }
+
+  .footer-logo {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 900;
+    color: var(--cyan);
+    text-shadow: var(--glow-cyan);
+    letter-spacing: 4px;
+  }
+
+  .footer-text {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.6rem;
+    color: rgba(200,224,240,0.25);
+    letter-spacing: 2px;
+    text-align: center;
+  }
+
+  .footer-badge {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.6rem;
+    color: rgba(200,224,240,0.25);
+    letter-spacing: 2px;
+    text-align: right;
+  }
+
+  /* ───────────── RESPONSIVE ───────────── */
+  @media (max-width: 700px) {
+    nav { padding: 1rem 1.5rem; }
+    .nav-links { display: none; }
+    .platform-split { grid-template-columns: 1fr; }
+    .flow::before { display: none; }
+    footer { flex-direction: column; text-align: center; }
+  }
+
+  /* ───────────── SCROLL ANIMATIONS ───────────── */
+  .reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">SHIELD<span>.</span>AI</div>
+  <ul class="nav-links">
+    <li><a href="#stats">THREAT</a></li>
+    <li><a href="#how">PROTOCOL</a></li>
+    <li><a href="#features">FEATURES</a></li>
+    <li><a href="#platforms">PLATFORMS</a></li>
+    <li><a href="#tech">TECH</a></li>
+  </ul>
+  <div class="nav-badge">LIVE PROTECTION</div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hex-grid"></div>
+  <div class="hero-glow"></div>
+
+  <div class="hero-tag">INTERNAL COLLEGE HACKATHON — 2025</div>
+
+  <h1 class="hero-title">
+    <span class="line1 glitch" data-text="DIGITAL ARREST">DIGITAL ARREST</span>
+    <span class="line2">SHIELD SYSTEM</span>
+  </h1>
+
+  <p class="hero-sub">
+    AI-powered real-time detection and prevention of Digital Arrest scams.
+    Protecting citizens from India's most psychologically devastating cyber fraud — before the money is gone.
+  </p>
+
+  <div class="hero-ctas">
+    <a href="#features" class="btn-primary">EXPLORE SYSTEM</a>
+    <a href="#alert-demo" class="btn-secondary">SEE LIVE ALERT</a>
+  </div>
+
+  <div class="scroll-hint">
+    <div class="scroll-line"></div>
+    SCROLL
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker">
+  <div class="ticker-track">
+    <span class="ticker-item">₹54,000 CR+ LOST TO DIGITAL ARREST FRAUD (2021–2025)</span>
+    <span class="ticker-item">NO "DIGITAL ARREST" EXISTS IN INDIAN LAW</span>
+    <span class="ticker-item">THOUSANDS OF COMPLAINTS MONTHLY ON CYBERCRIME.GOV.IN</span>
+    <span class="ticker-item">VICTIMS COERCED VIA WHATSAPP VIDEO CALL IN REAL-TIME</span>
+    <span class="ticker-item">AI DEEPFAKES USED TO IMPERSONATE CBI / ED / RBI OFFICERS</span>
+    <span class="ticker-item">₹54,000 CR+ LOST TO DIGITAL ARREST FRAUD (2021–2025)</span>
+    <span class="ticker-item">NO "DIGITAL ARREST" EXISTS IN INDIAN LAW</span>
+    <span class="ticker-item">THOUSANDS OF COMPLAINTS MONTHLY ON CYBERCRIME.GOV.IN</span>
+    <span class="ticker-item">VICTIMS COERCED VIA WHATSAPP VIDEO CALL IN REAL-TIME</span>
+    <span class="ticker-item">AI DEEPFAKES USED TO IMPERSONATE CBI / ED / RBI OFFICERS</span>
+  </div>
+</div>
+
+<!-- STATS -->
+<section id="stats">
+  <p class="section-label reveal">// THREAT INTELLIGENCE</p>
+  <h2 class="section-title reveal">The <span class="accent">Scale</span> of Crisis</h2>
+  <p class="section-desc reveal">Numbers that demand immediate action — not awareness campaigns.</p>
+
+  <div class="stats-grid reveal">
+    <div class="stat-card">
+      <div class="stat-num danger">₹54K Cr</div>
+      <div class="stat-label">Cumulative financial losses from digital arrest & impersonation fraud (2021–2025)</div>
+      <div class="stat-corner">STAT_01</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num danger">₹22K Cr</div>
+      <div class="stat-label">Total cyber fraud losses in 2025 alone — digital arrest a major contributor</div>
+      <div class="stat-corner">STAT_02</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">₹1–4 Cr</div>
+      <div class="stat-label">Typical loss per high-value victim — elderly, professionals, upper-middle class families</div>
+      <div class="stat-corner">STAT_03</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">0</div>
+      <div class="stat-label">Real-time proactive detection tools available to citizens during active coercion</div>
+      <div class="stat-corner">STAT_04</div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <p class="section-label reveal">// ATTACK VECTOR ANALYSIS</p>
+  <h2 class="section-title reveal">How the <span class="accent">Scam</span> Works</h2>
+  <p class="section-desc reveal">Five ruthlessly engineered steps designed to bypass rational thinking.</p>
+
+  <div class="flow reveal">
+    <div class="flow-step">
+      <div class="step-num">01</div>
+      <span class="step-icon">📞</span>
+      <div class="step-title">INITIAL CONTACT</div>
+      <div class="step-desc">Call or WhatsApp from "official" looking numbers claiming CBI / ED / RBI involvement</div>
+    </div>
+    <div class="flow-step">
+      <div class="step-num">02</div>
+      <span class="step-icon">🪪</span>
+      <div class="step-title">FAKE IDENTITY</div>
+      <div class="step-desc">Forged FIRs, court orders, government seals — AI deepfakes of real officers shown on video</div>
+    </div>
+    <div class="flow-step">
+      <div class="step-num">03</div>
+      <span class="step-icon">🔒</span>
+      <div class="step-title">DIGITAL ARREST</div>
+      <div class="step-desc">Victim forced to stay on live call — threatened with immediate physical arrest if they disconnect</div>
+    </div>
+    <div class="flow-step">
+      <div class="step-num">04</div>
+      <span class="step-icon">🧠</span>
+      <div class="step-title">PSYCH COERCION</div>
+      <div class="step-desc">Escalating threats of jail, asset seizure, family harm — complete isolation enforced</div>
+    </div>
+    <div class="flow-step">
+      <div class="step-num">05</div>
+      <span class="step-icon">💸</span>
+      <div class="step-title">MONEY TRANSFER</div>
+      <div class="step-desc">UPI, bank transfer or crypto sent to "safe accounts" — scammers vanish immediately</div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features">
+  <p class="section-label reveal">// SYSTEM CAPABILITIES</p>
+  <h2 class="section-title reveal">What <span class="accent">Shield AI</span> Does</h2>
+  <p class="section-desc reveal">Six layers of protection running in real-time across your calls and messages.</p>
+
+  <div class="features-grid reveal">
+    <div class="feat-card">
+      <div class="feat-icon-wrap">🎙️</div>
+      <div class="feat-title">REAL-TIME CALL ANALYSIS</div>
+      <div class="feat-desc">NLP engine scans live audio for scam trigger phrases — "digital arrest", "do not tell anyone", "transfer to safe account" — and fires an instant alert.</div>
+      <span class="feat-tag">NLP · ASR · LIVE</span>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon-wrap">🤖</div>
+      <div class="feat-title">DEEPFAKE DETECTION</div>
+      <div class="feat-desc">AI classifier identifies synthetic voice clones and video deepfakes used to impersonate CBI, ED, or RBI officers in real-time video calls.</div>
+      <span class="feat-tag">CV · GAN DETECTION</span>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon-wrap">💬</div>
+      <div class="feat-title">WHATSAPP BOT SCANNER</div>
+      <div class="feat-desc">Forward any suspicious message or screenshot to our WhatsApp bot. It instantly analyzes content, scores scam probability, and tells you what to do next.</div>
+      <span class="feat-tag">WA BUSINESS API</span>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon-wrap">🚨</div>
+      <div class="feat-title">INSTANT RISK ALERT</div>
+      <div class="feat-desc">Risk score 0–100 displayed with color-coded severity. Immediate action recommendations: hang up, do not transfer, call a trusted person now.</div>
+      <span class="feat-tag">REAL-TIME · PUSH</span>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon-wrap">📁</div>
+      <div class="feat-title">EVIDENCE PRESERVATION</div>
+      <div class="feat-desc">Auto-captures call metadata, flagged phrases, timestamps, and audio snippets — packages everything as a legal evidence file for submission to authorities.</div>
+      <span class="feat-tag">ENCRYPTED · TAMPER-PROOF</span>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon-wrap">📍</div>
+      <div class="feat-title">ONE-TAP REPORTING</div>
+      <div class="feat-desc">Direct pipeline to cybercrime.gov.in, I4C, and local cyber cell — pre-filled with captured evidence. Report in under 30 seconds from inside the app.</div>
+      <span class="feat-tag">CYBERCRIME.GOV.IN API</span>
+    </div>
+  </div>
+</section>
+
+<!-- PLATFORMS -->
+<section id="platforms">
+  <p class="section-label reveal">// DEPLOYMENT CHANNELS</p>
+  <h2 class="section-title reveal">Two <span class="accent">Platforms.</span> One Shield.</h2>
+  <p class="section-desc reveal">Where scams happen is exactly where protection lives.</p>
+
+  <div class="platform-split reveal">
+    <div class="platform-card">
+      <div class="platform-bg-text">APP</div>
+      <span class="platform-icon">📱</span>
+      <div class="platform-name">MOBILE APP</div>
+      <div class="platform-sub">ANDROID · iOS · REAL-TIME</div>
+      <ul class="platform-list">
+        <li>Background call monitoring — always listening, never recording personal data</li>
+        <li>Live risk score overlay during suspicious calls</li>
+        <li>Video call deepfake detection via front camera analysis</li>
+        <li>Emergency SOS — silently alerts a trusted contact during active coercion</li>
+        <li>Evidence locker with encrypted session recordings</li>
+        <li>Multi-language support: Hindi, English, Telugu, Tamil, Bengali</li>
+      </ul>
+      <span class="platform-badge">REACT NATIVE · FIREBASE</span>
+    </div>
+    <div class="platform-card whatsapp">
+      <div class="platform-bg-text">BOT</div>
+      <span class="platform-icon">🟢</span>
+      <div class="platform-name">WHATSAPP BOT</div>
+      <div class="platform-sub">ZERO INSTALL · INSTANT ACCESS</div>
+      <ul class="platform-list">
+        <li>Forward any suspicious message — bot replies with scam score in seconds</li>
+        <li>Image/screenshot OCR — detects forged FIRs, fake court orders, fake seals</li>
+        <li>Audio message analysis — flags AI voice clones in forwarded voice notes</li>
+        <li>Guided escape protocol — step-by-step instructions if you're being coerced</li>
+        <li>One-message report filing to cybercrime.gov.in</li>
+        <li>Works for anyone with WhatsApp — no smartphone literacy required</li>
+      </ul>
+      <span class="platform-badge" style="border-color:rgba(37,211,102,0.3);color:#25D366">WA BUSINESS API · TWILIO</span>
+    </div>
+  </div>
+</section>
+
+<!-- TECH STACK -->
+<section id="tech">
+  <p class="section-label reveal">// TECHNICAL STACK</p>
+  <h2 class="section-title reveal">Built on <span class="accent">Solid</span> Foundations</h2>
+  <p class="section-desc reveal" style="margin-bottom:2.5rem">Production-grade technologies powering every layer of protection.</p>
+
+  <div class="tech-grid reveal">
+    <div class="tech-pill">Python</div>
+    <div class="tech-pill">TensorFlow</div>
+    <div class="tech-pill">PyTorch</div>
+    <div class="tech-pill">OpenAI Whisper ASR</div>
+    <div class="tech-pill">Hugging Face NLP</div>
+    <div class="tech-pill">React Native</div>
+    <div class="tech-pill">Node.js</div>
+    <div class="tech-pill">Firebase</div>
+    <div class="tech-pill">WA Business API</div>
+    <div class="tech-pill">Twilio</div>
+    <div class="tech-pill">FastAPI</div>
+    <div class="tech-pill">MongoDB</div>
+    <div class="tech-pill">Redis</div>
+    <div class="tech-pill">Docker</div>
+    <div class="tech-pill">GCP / AWS</div>
+    <div class="tech-pill">Tesseract OCR</div>
+    <div class="tech-pill">LibRosa</div>
+    <div class="tech-pill">OpenCV</div>
+  </div>
+</section>
+
+<!-- ALERT DEMO -->
+<section id="alert-demo">
+  <p class="section-label reveal">// LIVE SYSTEM DEMO</p>
+  <h2 class="section-title reveal">What a <span class="accent">Real Alert</span> Looks Like</h2>
+  <p class="section-desc reveal">This is what your screen shows the moment a digital arrest attempt is detected.</p>
+
+  <div class="alert-box reveal">
+    <div class="alert-header">
+      <div class="alert-dot"></div>
+      <div class="alert-title-text">⚠ SCAM DETECTED — HIGH RISK</div>
+      <div class="alert-code">SID:7F2A9C</div>
+    </div>
+
+    <div class="risk-bar-wrap">
+      <div class="risk-bar-label">
+        <span>RISK SCORE</span>
+        <span>94 / 100</span>
+      </div>
+      <div class="risk-bar">
+        <div class="risk-fill"></div>
+      </div>
+    </div>
+
+    <div class="alert-flags">
+      <div class="alert-flag">Phrase detected: "you are under digital arrest"</div>
+      <div class="alert-flag">Phrase detected: "do not inform your family"</div>
+      <div class="alert-flag">Phrase detected: "transfer to safe RBI account"</div>
+      <div class="alert-flag">Audio anomaly: possible AI voice clone signature</div>
+      <div class="alert-flag">Caller impersonating: CBI / enforcement officer</div>
+    </div>
+
+    <div class="alert-actions">
+      <button class="act-btn primary">HANG UP NOW</button>
+      <button class="act-btn secondary">REPORT TO CYBERCRIME</button>
+      <button class="act-btn secondary">ALERT TRUSTED CONTACT</button>
+      <button class="act-btn secondary">SAVE EVIDENCE</button>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">SHIELD.AI</div>
+  <div class="footer-text">INTERNAL COLLEGE HACKATHON · 2026 · INDIA<br>BUILT TO PROTECT · NOT TO SURVEIL</div>
+  <div class="footer-badge">NO "DIGITAL ARREST"<br>EXISTS IN INDIAN LAW</div>
+</footer>
+
+<script>
+  // Intersection Observer for reveal animations
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  // Stagger children of grids
+  document.querySelectorAll('.stats-grid, .features-grid, .tech-grid').forEach(grid => {
+    [...grid.children].forEach((child, i) => {
+      child.style.transitionDelay = `${i * 0.07}s`;
+    });
+  });
+</script>
+
+<script>
+const API_URL = 'https://digital-arrest-shield.onrender.com';
+
+// Add scan input box before the alert box
+document.addEventListener('DOMContentLoaded', function () {
+  const alertBox = document.querySelector('.alert-box');
+  alertBox.insertAdjacentHTML('beforebegin', `
+    <div id="scan-input-wrap" style="
+      max-width: 600px;
+      margin: 0 auto 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    ">
+      <textarea
+        id="scanInput"
+        placeholder="Paste suspicious message or call transcript here...&#10;&#10;Example: Main CBI officer hoon aap digital arrest mein hain turant UPI transfer karo"
+        style="
+          width: 100%;
+          background: #0a1f33;
+          border: 1px solid rgba(0,255,245,0.2);
+          color: #c8e0f0;
+          padding: 1rem;
+          font-family: 'Share Tech Mono', monospace;
+          font-size: 0.8rem;
+          resize: vertical;
+          min-height: 100px;
+          outline: none;
+          letter-spacing: 0.5px;
+          line-height: 1.6;
+          box-sizing: border-box;
+        "
+      ></textarea>
+      <button
+        onclick="runScan()"
+        id="scanBtn"
+        style="
+          background: #00fff5;
+          color: #010a13;
+          border: none;
+          padding: 0.8rem 1.5rem;
+          font-family: 'Orbitron', sans-serif;
+          font-weight: 700;
+          font-size: 0.75rem;
+          letter-spacing: 3px;
+          cursor: pointer;
+          width: 100%;
+          transition: all 0.2s;
+        "
+      >▶ SCAN NOW</button>
+      <div id="scanStatus" style="
+        font-family: 'Share Tech Mono', monospace;
+        font-size: 0.65rem;
+        color: rgba(0,255,245,0.5);
+        letter-spacing: 2px;
+        text-align: center;
+        min-height: 1rem;
+      "></div>
+    </div>
+  `);
+});
+
+async function runScan() {
+  const input  = document.getElementById('scanInput');
+  const btn    = document.getElementById('scanBtn');
+  const status = document.getElementById('scanStatus');
+  const text   = input.value.trim();
+
+  if (!text) {
+    status.textContent = '⚠ PLEASE ENTER TEXT TO SCAN';
+    status.style.color = '#ffe600';
+    return;
+  }
+
+  btn.textContent      = '⏳ SCANNING...';
+  btn.style.background = 'rgba(0,255,245,0.3)';
+  btn.disabled         = true;
+  status.textContent   = '// CONNECTING TO SHIELD.AI ENGINE...';
+  status.style.color   = 'rgba(0,255,245,0.5)';
+
+  try {
+    const response = await fetch(`${API_URL}/classify`, {
+      method : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body   : JSON.stringify({ text: text })
+    });
+
+    if (!response.ok) throw new Error('API error');
+    const data = await response.json();
+    displayResult(data);
+    status.textContent = `// SCAN COMPLETE · LANG: ${data.detected_language.toUpperCase()} · CONFIDENCE: ${Math.round(data.score * 100)}%`;
+    status.style.color = data.label === 'scam' ? '#ff003c' : '#00ff88';
+
+  } catch (error) {
+    status.textContent = '⚠ BACKEND OFFLINE — CHECK IF SERVER IS RUNNING';
+    status.style.color = '#ff003c';
+    console.error(error);
+  }
+
+  btn.textContent      = '▶ SCAN NOW';
+  btn.style.background = '#00fff5';
+  btn.disabled         = false;
+}
+
+function displayResult(data) {
+  const isScam   = data.label === 'scam';
+  const score    = Math.round(data.score * 100);
+  const alertBox = document.querySelector('.alert-box');
+
+  alertBox.style.borderColor = isScam ? '#ff003c' : '#00ff88';
+  alertBox.style.boxShadow   = isScam
+    ? '0 0 30px rgba(255,0,60,0.3), inset 0 0 30px rgba(255,0,60,0.05)'
+    : '0 0 30px rgba(0,255,136,0.3), inset 0 0 30px rgba(0,255,136,0.05)';
+
+  const titleEl = document.querySelector('.alert-title-text');
+  if (isScam) {
+    titleEl.textContent = `⚠ SCAM DETECTED — ${data.risk} RISK`;
+    titleEl.style.color = '#ff003c';
+  } else {
+    titleEl.textContent = '✓ NO THREAT DETECTED — SAFE';
+    titleEl.style.color = '#00ff88';
+  }
+
+  document.querySelector('.risk-bar-label span:last-child').textContent = score + ' / 100';
+  document.querySelector('.risk-fill').style.width = score + '%';
+
+  const flagsDiv = document.querySelector('.alert-flags');
+  if (data.triggered_phrases && data.triggered_phrases.length > 0) {
+    flagsDiv.innerHTML = data.triggered_phrases
+      .map(p => `<div class="alert-flag">${p}</div>`).join('');
+  } else if (isScam) {
+    flagsDiv.innerHTML = '<div class="alert-flag">Scam pattern detected in conversation</div>';
+  } else {
+    flagsDiv.innerHTML = '<div class="alert-flag" style="color:rgba(0,255,136,0.7)">No scam phrases detected</div>';
+  }
+
+  let adviceEl = document.getElementById('adviceText');
+  if (!adviceEl) {
+    flagsDiv.insertAdjacentHTML('afterend', `
+      <div id="adviceText" style="
+        font-family: 'Share Tech Mono', monospace;
+        font-size: 0.75rem;
+        padding: 0.8rem;
+        margin: 0.8rem 0;
+        border-left: 2px solid #ff003c;
+        color: rgba(200,224,240,0.8);
+        letter-spacing: 0.5px;
+        line-height: 1.6;
+      "></div>`);
+    adviceEl = document.getElementById('adviceText');
+  }
+  adviceEl.textContent       = data.advice;
+  adviceEl.style.borderColor = isScam ? '#ff003c' : '#00ff88';
+
+  const actionsDiv = document.querySelector('.alert-actions');
+  if (isScam) {
+    actionsDiv.innerHTML = `
+      <button class="act-btn primary" onclick="window.open('tel:1930')">📞 CALL 1930</button>
+      <button class="act-btn secondary" onclick="reportCrime('${encodeURIComponent(JSON.stringify(data))}')">🌐 REPORT CRIME</button>
+      <button class="act-btn secondary" onclick="saveEvidence('${encodeURIComponent(JSON.stringify(data))}')">💾 SAVE EVIDENCE</button>
+    `;
+  } else {
+    actionsDiv.innerHTML = `
+      <button class="act-btn secondary" onclick="document.getElementById('scanInput').value=''">🔄 SCAN ANOTHER</button>
+    `;
+  }
+
+  alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+async function reportCrime(dataEncoded) {
+  const data   = JSON.parse(decodeURIComponent(dataEncoded));
+  const status = document.getElementById('scanStatus');
+  try {
+    const response = await fetch(`${API_URL}/report`, {
+      method : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body   : JSON.stringify({
+        original_text    : data.original_text,
+        label            : data.label,
+        risk             : data.risk,
+        score            : data.score,
+        triggered_phrases: data.triggered_phrases,
+        advice           : data.advice
+      })
+    });
+    const result       = await response.json();
+    status.textContent = `✅ CASE REGISTERED: ${result.case_id} — EVIDENCE STORED`;
+    status.style.color = '#00ff88';
+    window.open('https://cybercrime.gov.in', '_blank');
+  } catch (error) {
+    status.textContent = '⚠ REPORT FAILED — TRY AGAIN';
+    status.style.color = '#ff003c';
+  }
+}
+
+function saveEvidence(dataEncoded) {
+  const data     = JSON.parse(decodeURIComponent(dataEncoded));
+  const evidence = { case_id: `DAS-${Date.now()}`, timestamp: new Date().toISOString(), ...data };
+  const blob     = new Blob([JSON.stringify(evidence, null, 2)], { type: 'application/json' });
+  const url      = URL.createObjectURL(blob);
+  const a        = document.createElement('a');
+  a.href         = url;
+  a.download     = `evidence_${evidence.case_id}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  document.getElementById('scanStatus').textContent = `✅ EVIDENCE SAVED AS evidence_${evidence.case_id}.json`;
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.ctrlKey && e.key === 'Enter') runScan();
+});
+</script>
+</body>
+</html>
